@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>⚙️ Painel – novo1</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', sans-serif;
+    background: #0f0f1a;
+    color: #e0e0e0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .card {
+    background: #1a1a2e;
+    border: 1px solid #2d2d50;
+    border-radius: 16px;
+    padding: 36px 32px;
+    width: 100%;
+    max-width: 520px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  }
+  .logo { font-size: 32px; margin-bottom: 8px; }
+  h1 { font-size: 20px; color: #a29bfe; margin-bottom: 4px; }
+  .sub { font-size: 13px; color: #666; margin-bottom: 28px; }
+  label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    margin-bottom: 6px;
+  }
+  input[type="text"] {
+    width: 100%;
+    background: #0f0f1a;
+    border: 1px solid #2d2d50;
+    border-radius: 8px;
+    padding: 12px 14px;
+    color: #e0e0e0;
+    font-size: 14px;
+    outline: none;
+    transition: border-color .2s;
+    margin-bottom: 24px;
+  }
+  input[type="text"]:focus { border-color: #6c5ce7; }
+  .btn-save {
+    width: 100%;
+    background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 14px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity .2s, transform .1s;
+  }
+  .btn-save:hover { opacity: .9; }
+  .btn-save:active { transform: scale(.98); }
+  .toast {
+    display: none;
+    margin-top: 16px;
+    background: #00b894;
+    color: #fff;
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 14px;
+    text-align: center;
+  }
+  .toast.error { background: #d63031; }
+  .divider { border: none; border-top: 1px solid #2d2d50; margin: 28px 0; }
+  .info-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: #555;
+    margin-bottom: 8px;
+    gap: 12px;
+  }
+  .info-row strong { color: #888; word-break: break-all; text-align: right; }
+  .current-link {
+    background: #0f0f1a;
+    border: 1px dashed #2d2d50;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 12px;
+    color: #6c5ce7;
+    word-break: break-all;
+    margin-bottom: 24px;
+  }
+  .current-label { font-size: 11px; color: #555; margin-bottom: 4px; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">📱</div>
+  <h1>Trocar Link do Telegram</h1>
+  <p class="sub">Projeto: <strong style="color:#a29bfe">novo1</strong></p>
+
+  <div class="current-label">LINK ATUAL</div>
+  <div class="current-link" id="currentLink">https://t.me/promo_folder13</div>
+
+  <label>Novo link do Telegram (usuário ou link completo)</label>
+  <input type="text" id="tgLink" placeholder="https://t.me/seu_usuario ou @seu_usuario" />
+
+  <button class="btn-save" onclick="salvar()">💾 Gerar novo DM.js</button>
+  <div class="toast" id="toast"></div>
+
+  <hr class="divider">
+  <div class="info-row"><span>Projeto</span><strong>novo1</strong></div>
+  <div class="info-row"><span>Arquivo a substituir</span><strong>DM.js</strong></div>
+  <div class="info-row"><span>Mensagem gerada</span><strong>Hello, I'm interested in purchasing novo1</strong></div>
+</div>
+
+<script>
+  function extractUsername(link) {
+    link = (link || '').trim();
+    if (link.startsWith('@')) return link.slice(1);
+    var m = link.match(/(?:t\.me|telegram\.me|tg\.me)\/([^/?#\s]+)/i);
+    if (m) return m[1];
+    return link.replace(/\/+$/, '');
+  }
+
+  function showToast(msg, isError) {
+    var t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast' + (isError ? ' error' : '');
+    t.style.display = 'block';
+    setTimeout(function () { t.style.display = 'none'; }, 3500);
+  }
+
+  function salvar() {
+    var raw = document.getElementById('tgLink').value.trim();
+    if (!raw) { showToast('❌ Insira um link válido', true); return; }
+
+    var username = extractUsername(raw);
+
+    var dmJs = "// ================================================\n"
+      + "// MUDE APENAS ESTAS DUAS LINHAS\n"
+      + "// ================================================\n"
+      + "var TELEGRAM_USER = '" + username + "';\n"
+      + "var PRODUCT_NAME  = 'novo1';\n"
+      + "// ================================================\n\n"
+      + "(function () {\n"
+      + "    'use strict';\n\n"
+      + "    var TG_PATTERN = /t\\.me|telegram\\.me|tg\\.me/i;\n\n"
+      + "    function buildLink(label) {\n"
+      + "        var product = cleanLabel(label) || PRODUCT_NAME;\n"
+      + "        var msg = 'Hello, I\\u2019m interested in purchasing ' + product;\n"
+      + "        return 'https://t.me/' + TELEGRAM_USER + '?text=' + encodeURIComponent(msg);\n"
+      + "    }\n\n"
+      + "    function cleanLabel(txt) {\n"
+      + "        if (!txt) return null;\n"
+      + "        txt = txt.trim().replace(/\\s+/g, ' ');\n"
+      + "        var IGNORE = /^(click|aqui|here|buy now|buy|comprar|join|entrar|telegram|t\\.me|access|acessar|get|obter|download|ver|view|open|abrir|👆|➡|→|►|▶)$/i;\n"
+      + "        if (!txt || txt.length < 3 || txt.length > 100 || IGNORE.test(txt)) return null;\n"
+      + "        return txt;\n"
+      + "    }\n\n"
+      + "    function getLabel(el) {\n"
+      + "        var dp = el.getAttribute('data-product');\n"
+      + "        if (!dp && el.closest) { var p = el.closest('[data-product]'); if (p) dp = p.getAttribute('data-product'); }\n"
+      + "        if (dp && dp.trim()) return dp.trim();\n"
+      + "        var title = el.getAttribute('title') || el.getAttribute('aria-label');\n"
+      + "        if (cleanLabel(title)) return title.trim();\n"
+      + "        var anchor = el.tagName === 'A' ? el : (el.closest ? el.closest('a') : null);\n"
+      + "        if (anchor) {\n"
+      + "            var txt = (anchor.innerText || anchor.textContent || '').trim().replace(/\\s+/g, ' ');\n"
+      + "            if (cleanLabel(txt)) return txt;\n"
+      + "        }\n"
+      + "        var img = el.querySelector ? el.querySelector('img[alt]') : null;\n"
+      + "        if (img && cleanLabel(img.getAttribute('alt'))) return img.getAttribute('alt').trim();\n"
+      + "        return null;\n"
+      + "    }\n\n"
+      + "    function replaceLinks() {\n"
+      + "        document.querySelectorAll('a[href]').forEach(function (a) {\n"
+      + "            if (!TG_PATTERN.test(a.getAttribute('href'))) return;\n"
+      + "            a.__dmLabel = getLabel(a);\n"
+      + "            a.href   = buildLink(a.__dmLabel);\n"
+      + "            a.target = '_blank';\n"
+      + "            a.rel    = 'noopener noreferrer';\n"
+      + "            a.removeAttribute('onclick');\n"
+      + "            console.log('[DM.js] Link → produto:', a.__dmLabel || PRODUCT_NAME, '| href:', a.href);\n"
+      + "        });\n\n"
+      + "        document.querySelectorAll('[onclick]').forEach(function (el) {\n"
+      + "            var oc = el.getAttribute('onclick') || '';\n"
+      + "            if (!TG_PATTERN.test(oc)) return;\n"
+      + "            el.removeAttribute('onclick');\n"
+      + "            el.style.cursor = 'pointer';\n"
+      + "            el.addEventListener('click', function (e) {\n"
+      + "                e.preventDefault(); e.stopPropagation();\n"
+      + "                window.open(buildLink(getLabel(el)), '_blank');\n"
+      + "            });\n"
+      + "        });\n\n"
+      + "        document.querySelectorAll('[data-href],[data-url],[data-link]').forEach(function (el) {\n"
+      + "            ['data-href','data-url','data-link'].forEach(function (attr) {\n"
+      + "                var v = el.getAttribute(attr);\n"
+      + "                if (v && TG_PATTERN.test(v)) el.setAttribute(attr, buildLink(getLabel(el)));\n"
+      + "            });\n"
+      + "        });\n"
+      + "    }\n\n"
+      + "    document.addEventListener('click', function (e) {\n"
+      + "        var el = e.target, anchor = null;\n"
+      + "        for (var i = 0; i < 8 && el; i++, el = el.parentElement) {\n"
+      + "            if (el.tagName === 'A' && TG_PATTERN.test(el.getAttribute('href') || '')) { anchor = el; break; }\n"
+      + "        }\n"
+      + "        if (!anchor) return;\n"
+      + "        if (anchor.href && anchor.href.indexOf('t.me/' + TELEGRAM_USER + '?text=') !== -1) return;\n"
+      + "        e.preventDefault(); e.stopPropagation();\n"
+      + "        window.open(buildLink(getLabel(anchor)), '_blank');\n"
+      + "    }, true);\n\n"
+      + "    if (window.MutationObserver) {\n"
+      + "        new MutationObserver(function (ms) {\n"
+      + "            if (ms.some(function (m) { return m.addedNodes.length > 0; })) replaceLinks();\n"
+      + "        }).observe(document.body, { childList: true, subtree: true });\n"
+      + "    }\n\n"
+      + "    function init() { replaceLinks(); [500,1500,3000,6000].forEach(function(d){setTimeout(replaceLinks,d);}); }\n"
+      + "    if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', init); } else { init(); }\n\n"
+      + "    window.dmGetLink = buildLink;\n"
+      + "    window.dmReplace = replaceLinks;\n"
+      + "    console.log('[DM.js] Carregado. User:', TELEGRAM_USER, '| Produto padrão:', PRODUCT_NAME);\n"
+      + "})();\n";
+
+    var blob = new Blob([dmJs], { type: 'text/javascript' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'DM.js';
+    a.click();
+
+    document.getElementById('currentLink').textContent = 'https://t.me/' + username;
+    showToast('✅ DM.js baixado! Substitua o arquivo na pasta do site.');
+  }
+</script>
+</body>
+</html>
